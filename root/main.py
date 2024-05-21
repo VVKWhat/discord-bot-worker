@@ -4,6 +4,37 @@ from nextcord.ext import commands
 import datetime
 import json
 import os
+import sqlite3
+
+import sqlite3
+
+# Подключение к базе данных
+sql = sqlite3.connect("database.db")
+cursor = sql.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS bot_warns (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expired_days INT,
+    UNIQUE(user_id, reason)
+);
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS bot_bans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expired TIMESTAMP,
+    appilation BOOLEAN,
+    UNIQUE(user_id, reason)
+);
+""")
+sql.commit()
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 token_file = os.path.join(current_dir, "token")
@@ -69,39 +100,120 @@ async def send_json_error(ctx: nextcord.Interaction, error):
     else:
         await ctx.send(f"Произошла ошибка: {str(error)}")
 
+@bot.slash_command(name="ban", description="Выдать бан пользователю")
+async def ban(
+    ctx: nextcord.Interaction, 
+    member: nextcord.Member, 
+    duration: int, 
+    reason: str, 
+    appeal: str = SlashOption(
+        name="appeal",
+        choices={
+            "С апелляцией": "appeal", 
+            "Без апелляции": "noappeal"
+        },
+        required=True
+    )
+):
+    try:
+        guild = ctx.guild
+        if not guild:
+            await ctx.response.send_message("Эта команда может быть использована только в сервере.")
+            return
 
-@bot.slash_command(name="ban", description="Выдать бан с возможностью апелляции.")
-async def ban(ctx: nextcord.Interaction, member: nextcord.Member, duration: int, reason: str, appeal: str = SlashOption(name="picker",choices={"С апелляцией": "appeal", "Без апелляции": "noappeal"},)):
-    guild = ctx.guild
-    ban_appeal = guild.get_role(1242234027742859294)
-    ban_no_appeal = guild.get_role(1242232941422051358)
-    if ctx.user.top_role.id in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
-        if(appeal == "appeal"):
+        ban_appeal = guild.get_role(1242234027742859294)
+        ban_no_appeal = guild.get_role(1242232941422051358)
+
+        if ctx.user.top_role.id not in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
+            await ctx.response.send_message("У вас нет прав для использования этой команды.")
+            return
+        if ctx.user.mention == member.mention:
+            print(f"{ctx.user.display_name} долбоёб - пытался себя забанить =-=")
+            await ctx.response.send_message("Вы не можете забанить себя! Всё с головой в порядке?")
+            return
+        if appeal == "appeal":
             await member.add_roles(ban_appeal)
-            appeal = '\n\n- Дополнительно:\n> У вас есть возможность подачи апелляции!\n> В канале <#1242236306571001876>'
+            appeal_text = '\n\n- Дополнительно:\n> У вас есть возможность подачи апелляции!\n> В канале <#1242228411280265388>'
         else:
             await member.add_roles(ban_no_appeal)
-            appeal = ''
-        
-        
+            appeal_text = ''
+
         unban_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=duration)
-        await ctx.response.send_message(f"{member.display_name} был забанен на {duration} часов. reason: {reason}.")
+
+        await ctx.response.send_message(f"{member.mention} был забанен на {duration}ч. по причине: \"{reason}\".")
+
         channel = bot.get_channel(1242246527712235582)
+        if not channel:
+            await ctx.response.send_message("Не удалось найти канал для отправки сообщения.")
+            return
+
         await channel.send(f'<@{member.id}>')
-        
+
         embed_info = nextcord.Embed(
             description="⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n⠀\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>",
             color=0x2b2d31
         )
         embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         await channel.send(embed=embed_info)
+
         embed = nextcord.Embed(
-            description=f"⠀\n- Срок вашего наказания:\n> {duration}ч.\n⠀\n- Причина выдачи наказания:\n> {reason}\n⠀\n- Наказание выдал(-а):\n> <@{ctx.user.id}>\n⠀\n- Дата окончания наказания:\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC) {appeal}",
+            description=f"⠀\n- Срок вашего наказания:\n> {duration}ч.\n⠀\n- Причина выдачи наказания:\n> {reason}\n⠀\n- Наказание выдал(-а):\n> <@{ctx.user.id}>\n⠀\n- Дата окончания наказания:\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC){appeal_text}",
             color=0xff0000
         )
         embed.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         await channel.send(embed=embed)
+        await member.send(embed=embed_info)
+        await member.send(embed=embed)
+    except Exception as e:
+        await ctx.response.send_message(f"Произошла ошибка: {str(e)}")
+
+
+@bot.slash_command(name="warn", description="Выдать предупреждение пользователю")
+async def warn(
+    ctx: nextcord.Interaction, 
+    member: nextcord.Member, 
+    duration: int = SlashOption(
+        name="duration",
+        choices={
+            "Навсегда": 0, 
+            "30 дней": 30, 
+            "Пользовательский": -1
+        },
+        required=True
+    ), 
+    reason: str = SlashOption(
+        name="reason",
+        required=True
+    )):
+    if duration == -1:
+        modal = nextcord.ui.Modal(title="Введите пользовательский срок")
+        
+        custom_duration = nextcord.ui.TextInput(
+            label="Срок в днях",
+            placeholder="Введите количество дней",
+            required=True
+        )
+
+        if ctx.user.top_role.id not in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
+            await ctx.response.send_message("У вас нет прав для использования этой команды.")
+            return
+        
+        modal.add_item(custom_duration)
+        
+        async def modal_callback(interaction: nextcord.Interaction):
+            custom_duration_value = custom_duration.value
+            try:
+                
+                await interaction.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {custom_duration_value}, причина: {reason}") 
+                await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {interaction.user.mention}\nСрок выдачи варна: {custom_duration_value} дней.')
+            except:
+                await interaction.response.send_message(f'Вы неправильно выдали варн пользователю: {member.mention}!\nВы неправильно указали время в днях: {custom_duration_value}\nПричина варна: {reason}')
+            await interaction.response.send_message(f'Пользовательский срок установлен на {custom_duration_value} дней.')
+        modal.callback = modal_callback
+        await ctx.response.send_modal(modal)
     else:
-        await ctx.response.send_message("У вас нет прав для использования этой команды.")
+        await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {ctx.user.mention}\nСрок выдачи варна: {duration}')
+        await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {duration}, причина: {reason}")
+    
 
 bot.run(TOKEN)
