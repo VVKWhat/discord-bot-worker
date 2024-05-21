@@ -2,7 +2,7 @@
 ## Информация
 
 Это Discord бот для нашего хостинга.
-Создали: @VVKWhat, @sananymore
+Создатели: VVKWhat (Foxanto), sananymore
 
 ## Планы
 
