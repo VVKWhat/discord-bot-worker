@@ -1,5 +1,6 @@
 import nextcord
 from nextcord.ext import commands
+import datetime
 import json
 import os
 
@@ -80,14 +81,14 @@ async def on_member_ban(guild, user):
     embed.add_field(name="- Дополнительно:", value="> У вас есть возможность подачи апелляции!\n> В канале <#1242236306571001876>")
     await channel.send(embed=embed)
 
-@cog_ext.cog_slash(name="ban",
+@bot.slash_command (name="ban",
     description="Выдать бан с возможностью апелляции.",
     options=[
         nextcord.option.Option("пользователь", "Пользователь для бана.", nextcord.option.OptionType.USER, True),
         nextcord.option.Option("срок", "Срок бана в часах.", nextcord.option.OptionType.INTEGER, True),
         nextcord.option.Option("причина", "Причина бана.", nextcord.option.OptionType.STRING, True)
     ])
-async def ban(ctx: SlashContext, пользователь: nextcord.Member, срок: int, причина: str):
+async def ban(ctx: nextcord.Interaction, пользователь: nextcord.Member, срок: int, причина: str):
     guild = ctx.guild
     ban_role = guild.get_role(1242234027742859294)
     if ctx.author.top_role.id in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
