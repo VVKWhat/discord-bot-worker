@@ -64,4 +64,49 @@ async def send_json_error(ctx: nextcord.Interaction, error):
     else:
         await ctx.send(f"Произошла ошибка: {str(error)}")
 
+
+@bot.event
+async def on_member_ban(guild, user):
+    channel = bot.get_channel(1242246527712235582)
+    await channel.send(f'<@{user.id}>')
+    embed = nextcord.Embed(
+        description="⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n⠀\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>",
+        color=nextcord.Color.red()
+    )
+    embed.add_field(name="- Срок вашего наказания:", value="> Placeholder (заменить на срок бана)")
+    embed.add_field(name="- Причина выдачи наказания:", value="> Placeholder (заменить на причину бана)")
+    embed.add_field(name="- Наказание выдал(-а):", value=f"> <@{bot.user.id}>")
+    embed.add_field(name="- Дата окончания наказания:", value="> Placeholder (заменить на дату окончания бана)")
+    embed.add_field(name="- Дополнительно:", value="> У вас есть возможность подачи апелляции!\n> В канале <#1242236306571001876>")
+    await channel.send(embed=embed)
+
+@cog_ext.cog_slash(name="ban",
+    description="Выдать бан с возможностью апелляции.",
+    options=[
+        nextcord.option.Option("пользователь", "Пользователь для бана.", nextcord.option.OptionType.USER, True),
+        nextcord.option.Option("срок", "Срок бана в часах.", nextcord.option.OptionType.INTEGER, True),
+        nextcord.option.Option("причина", "Причина бана.", nextcord.option.OptionType.STRING, True)
+    ])
+async def ban(ctx: SlashContext, пользователь: nextcord.Member, срок: int, причина: str):
+    guild = ctx.guild
+    ban_role = guild.get_role(1242234027742859294)
+    if ctx.author.top_role.id in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
+        await пользователь.add_roles(ban_role)
+        unban_time = datetime.datetime.now() + datetime.timedelta(hours=срок)
+        await ctx.send(f"{пользователь.mention} был забанен на {срок} часов. Причина: {причина}.")
+        channel = bot.get_channel(1242246527712235582)
+        await channel.send(f'<@{пользователь.id}>')
+        embed = nextcord.Embed(
+            description="⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n⠀\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>",
+            color=nextcord.Color.red()
+        )
+        embed.add_field(name="- Срок вашего наказания:", value=f"> {срок} часов")
+        embed.add_field(name="- Причина выдачи наказания:", value=f"> {причина}")
+        embed.add_field(name="- Наказание выдал(-а):", value=f"> <@{ctx.author.id}>")
+        embed.add_field(name="- Дата окончания наказания:", value=f"> {unban_time.strftime('%d %B %Y, %H:%M')}")
+        embed.add_field(name="- Дополнительно:", value="> У вас есть возможность подачи апелляции!\n> В канале <#1242236306571001876>")
+        await channel.send(embed=embed)
+    else:
+        await ctx.send("У вас нет прав для использования этой команды.")
+
 bot.run(TOKEN)
