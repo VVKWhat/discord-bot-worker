@@ -1,19 +1,33 @@
-import disnake
-from disnake.ext import commands
 import os
+import nextcord
+from nextcord.ext import commands
 
-bot = commands.Bot(command_prefix='/')
+current_dir = os.path.dirname(os.path.abspath(__file__))
+token_file = os.path.join(current_dir, "token")
+
+with open(token_file, "r") as f:
+    TOKEN = f.read().strip()
+
+intents = nextcord.Intents.default()
+intents.messages = True
+intents.message_content = True
+
+bot = commands.Bot(command_prefix='/', intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'We have logged in as {bot.user}')
+    print()
+    print(f'Бот {bot.user.name} успешно запущен.')
+    print()
 
-@bot.slash_command(name='ping', description='Ping me!')
+@bot.slash_command()
 async def ping(ctx):
-    embed = disnake.Embed(title='Pong!', description=f'Bot response time: {round(bot.latency * 1000)}ms')
+    latency = bot.latency * 1000
+    embed = nextcord.Embed(
+        title="Pong!",
+        description=f"Задержка: {latency:.2f} мс",
+        color=0x2b2d31
+    )
     await ctx.send(embed=embed)
 
-with open('token', 'r') as f:
-    token = f.read()
-
-bot.run(token)
+bot.run(TOKEN)

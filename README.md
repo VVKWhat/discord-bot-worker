@@ -1,2 +1,5 @@
-# disocrd-bot-worker
-Для discord сервера хостинга 
+# discord-bot-worker
+### Для нашего хостинга.
+
+> [!TIP]
+> Стандартный (пустой) цвет для **embed**: `#2b2d31`
