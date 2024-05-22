@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS bot_warns (
     reason TEXT NOT NULL,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired_days INT,
-    UNIQUE(user_id, reason)
+    UNIQUE(user_id, id)
 );
 """)
 cursor.execute("""
@@ -30,7 +30,18 @@ CREATE TABLE IF NOT EXISTS bot_bans (
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired TIMESTAMP,
     appilation BOOLEAN,
-    UNIQUE(user_id, reason)
+    UNIQUE(user_id, id)
+);
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS bot_invites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    invite_code TEXT NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expired TIMESTAMP,
+    count BOOLEAN,
+    UNIQUE(user_id, id)
 );
 """)
 sql.commit()
@@ -45,6 +56,7 @@ with open(token_file, "r") as f:
     TOKEN = f.read().strip()
 
 intents = nextcord.Intents.default()
+intents.members = True
 intents.messages = True
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents)
@@ -62,7 +74,7 @@ async def on_ready():
 @bot.event
 async def on_member_join(member):
     print(f'новый участник! {member.display_name}')
-    channel = nextcord.Interaction.get_channel(gateway_channel_id)
+    channel = bot.get_channel(gateway_channel_id)
     if member.bot:
         return
     elif channel is not None:
@@ -86,7 +98,7 @@ async def on_member_join(member):
 @bot.event
 async def on_member_remove(member):
     print(f'Участник покинул нас! {member.display_name}')
-    channel = nextcord.Interaction.get_channel(gateway_channel_id)
+    channel = bot.get_channel(gateway_channel_id)
     if member.bot:
         return
     elif channel is not None:
