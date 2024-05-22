@@ -9,7 +9,12 @@ import sqlite3
 import sqlite3
 
 # Подключение к базе данных
-sql = sqlite3.connect("database.db")
+def convert_datetime(ts):
+       return datetime.datetime.strptime(ts.decode("utf-8"), '%Y-%m-%d %H:%M:%S')
+def adapt_datetime(ts):
+    return ts.strftime('%Y-%m-%d %H:%M:%S')
+sqlite3.register_adapter(datetime.datetime, adapt_datetime)
+sql = sqlite3.connect("database.db", detect_types=sqlite3.PARSE_DECLTYPES)
 cursor = sql.cursor()
 
 cursor.execute("""
@@ -26,10 +31,11 @@ cursor.execute("""
 CREATE TABLE IF NOT EXISTS bot_bans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
+    admin_id INTEGER NOT NULL,
     reason TEXT NOT NULL,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired TIMESTAMP,
-    appilation BOOLEAN,
+    appelation BOOLEAN,
     UNIQUE(user_id, id)
 );
 """)
@@ -41,6 +47,15 @@ CREATE TABLE IF NOT EXISTS bot_invites (
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired TIMESTAMP,
     count BOOLEAN,
+    UNIQUE(user_id, id)
+);
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS bot_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    invite_id INTEGER NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, id)
 );
 """)
@@ -91,6 +106,14 @@ async def on_member_join(member):
         )
         embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         await channel.send(embed=embed_info)
+        print(bot.user.id,'joined')
+        ## USER IS BANNED ##
+        answer = cursor.execute('SELECT `appelation` FROM `bot_bans` WHERE `bot_bans`.`user_id` = ?', member.id).fetchall()
+        has_ban = any(row['appilation'] for row in answer)
+        if len(answer) >= 1:
+            member.add_roles(1242234027742859294 if has_ban else 1242232941422051358)
+        sql.commit()
+        ## END USER IS BANNED ##
     else:
         print(f"Не удалось найти канал для отправки сообщения.")
 
@@ -184,8 +207,9 @@ async def ban(
 
         ban_appeal = guild.get_role(1242234027742859294)
         ban_no_appeal = guild.get_role(1242232941422051358)
-        if 1242232941422051358 in member.roles.id or 1242234027742859294 in member.roles.id:
+        if member.get_role(1242234027742859294) is None and member.get_role(1242232941422051358) is None:
             await ctx.response.send_message("Данный пользователь уже в бане.")
+            return 
         if ctx.user.top_role.id not in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
             await ctx.response.send_message("У вас нет прав для использования этой команды.")
             return
@@ -205,6 +229,12 @@ async def ban(
         await ctx.response.send_message(f"{member.mention} был забанен на {duration}ч. по причине: \"{reason}\".")
 
         channel = bot.get_channel(1242246527712235582)
+        ## ADD NEW DATA IN DATABASE ##
+
+        unban_time_sql = convert_datetime(unban_time)
+        sql.execute('INSERT INTO bot_bans (user_id, admin_id, reason, expired, appelation) VALUES (?, ?, ?, ?, ?)', (member.id, ctx.user.id, reason, unban_time_sql, ('appeal' in appeal)))
+        sql.commit()
+        ## END ADD NEW DATA IN DATABASE ##
         if not channel:
             await ctx.response.send_message("Не удалось найти канал для отправки сообщения.")
             return
@@ -228,7 +258,6 @@ async def ban(
         await member.send(embed=embed)
     except Exception as e:
         await ctx.response.send_message(f"Произошла ошибка: {str(e)}")
-
 @bot.slash_command(name="unban", description="Убрать существующий бан пользователю")
 async def unban(
     ctx: nextcord.Interaction, 
