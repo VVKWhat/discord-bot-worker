@@ -50,12 +50,61 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents)
 
 notification_channel_id = 1242246527712235582
+gateway_channel_id = 1242216834237992990
 
 @bot.event
 async def on_ready():
     print()
     print(f'Бот {bot.user.name} успешно запущен.')
     print()
+
+
+@bot.event
+async def on_member_join(member):
+    print(f'новый участник! {member.display_name}')
+    channel = nextcord.Interaction.get_channel(gateway_channel_id)
+    if member.bot:
+        return
+    elif channel is not None:
+        await channel.send(f'<@{member.id}>')
+        embed_info = nextcord.Embed(
+            description=f"⠀\n👋🏻⠀⠀**Приветствуем вас на нашем Discord сервере!**",
+            color=0x2b2d31
+        )
+        embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed_info)
+        embed_info = nextcord.Embed(
+            description=f"⠀\n**Советуем ознакомиться с следующими каналами:**\n⠀\n> - <#1242213724262105190>\n> - <#1242221576611696811>\n> - <#1242229530861768856>\n⠀\n**Вас пригласил:**\n⠀\n> ПРИГЛАСИЛ: пока нету",
+            color=0x2b2d31
+        )
+        embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed_info)
+    else:
+        print(f"Не удалось найти канал для отправки сообщения.")
+
+
+@bot.event
+async def on_member_remove(member):
+    print(f'Участник покинул нас! {member.display_name}')
+    channel = nextcord.Interaction.get_channel(gateway_channel_id)
+    if member.bot:
+        return
+    elif channel is not None:
+        await channel.send(f'<@{member.id}>')
+        embed_info = nextcord.Embed(
+            description=f"⠀\n👋🏻⠀⠀**До скорых встреч!**",
+            color=0x2b2d31
+        )
+        embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed_info)
+        embed = nextcord.Embed(
+            description=f"⠀\n**Надеемся, что мы встретимся снова!**\n⠀\n**Пользователя пригласил:**\n⠀\n> ПРИГЛАСИЛ: пока нет",
+            color=0x2b2d31
+        )
+        embed.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed)
+    else:
+        print(f"Не удалось найти канал для отправки сообщения.")
 
 
 @bot.slash_command()
@@ -123,7 +172,8 @@ async def ban(
 
         ban_appeal = guild.get_role(1242234027742859294)
         ban_no_appeal = guild.get_role(1242232941422051358)
-
+        if 1242232941422051358 in member.roles.id or 1242234027742859294 in member.roles.id:
+            await ctx.response.send_message("Данный пользователь уже в бане.")
         if ctx.user.top_role.id not in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
             await ctx.response.send_message("У вас нет прав для использования этой команды.")
             return
@@ -164,6 +214,58 @@ async def ban(
         await channel.send(embed=embed)
         await member.send(embed=embed_info)
         await member.send(embed=embed)
+    except Exception as e:
+        await ctx.response.send_message(f"Произошла ошибка: {str(e)}")
+
+@bot.slash_command(name="unban", description="Убрать существующий бан пользователю")
+async def unban(
+    ctx: nextcord.Interaction, 
+    member: nextcord.Member, 
+    reason: str, 
+):
+    try:
+        guild = ctx.guild
+        if not guild:
+            await ctx.response.send_message("Эта команда может быть использована только в сервере.")
+            return
+
+        ban_appeal = guild.get_role(1242234027742859294)
+        ban_no_appeal = guild.get_role(1242232941422051358)
+
+        if ctx.user.top_role.id not in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
+            await ctx.response.send_message("У вас нет прав для использования этой команды.")
+            return
+        if ctx.user.mention == member.mention:
+            print(f"{ctx.user.display_name} долбоёб - пытался себя разбанить =-=")
+            await ctx.response.send_message("Вы не имеете полномочий для того, чтобы разбанить самого себя")
+            return
+        if member.get_role(1242234027742859294) is not None and member.get_role(1242232941422051358) is not None:
+            await ctx.response.send_message("Данный пользователь не забанен!")
+            return
+        if ban_appeal in member.roles or ban_no_appeal in member.roles:
+            if ban_appeal in member.roles:
+                await member.remove_roles(ban_appeal)
+                await ctx.response.send_message(f'Пользователь {member.mention} был разбанен администратором {ctx.user.mention}\nПричина снятия бана: **{reason}**\n\nУ данного пользователя был бан с аппеляцией.')
+                await member.send(f'Вы были разбанены администратором {ctx.user.mention}\n**Начинайте наслаждаться моментом!**')
+                
+            if ban_no_appeal in member.roles:
+                await member.remove_roles(ban_no_appeal)
+                await ctx.response.send_message(f'Пользователь {member.mention} был разбанен администратором {ctx.user.mention}\nПричина снятия бана: **{reason}**\n\nУ данного пользователя был бан без возможности аппеляции.')
+                await member.send(f'Вы были разбанены администратором {ctx.user.mention}\n**Начинайте наслаждаться моментом!**')
+        else:
+            await ctx.response.send_message("Данный пользователь не забанен!")
+            
+        channel = bot.get_channel(1242246527712235582)
+        if not channel:
+            await ctx.response.send_message("Не удалось найти канал для отправки сообщения.")
+            return
+        embed = nextcord.Embed(
+            description=f"⠀\n-Разбанен пользователь:\n> {member.mention}\n⠀\n- Причина:\n> {reason}\n⠀\n- Наказание снял(-а):\n> <@{ctx.user.id}>\n",
+            color=0xff0000
+        )
+        await channel.send(embed=
+                           embed)
+        
     except Exception as e:
         await ctx.response.send_message(f"Произошла ошибка: {str(e)}")
 
@@ -215,5 +317,7 @@ async def warn(
         await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {ctx.user.mention}\nСрок выдачи варна: {duration}')
         await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {duration}, причина: {reason}")
     
+
+
 
 bot.run(TOKEN)
