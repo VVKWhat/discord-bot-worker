@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS bot_warns (
     reason TEXT NOT NULL,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired_days INT,
-    UNIQUE(user_id, reason)
+    UNIQUE(user_id, id)
 );
 """)
 cursor.execute("""
@@ -30,7 +30,18 @@ CREATE TABLE IF NOT EXISTS bot_bans (
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired TIMESTAMP,
     appilation BOOLEAN,
-    UNIQUE(user_id, reason)
+    UNIQUE(user_id, id)
+);
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS bot_invites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    invite_code TEXT NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expired TIMESTAMP,
+    count BOOLEAN,
+    UNIQUE(user_id, id)
 );
 """)
 sql.commit()
@@ -45,17 +56,67 @@ with open(token_file, "r") as f:
     TOKEN = f.read().strip()
 
 intents = nextcord.Intents.default()
+intents.members = True
 intents.messages = True
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents)
 
 notification_channel_id = 1242246527712235582
+gateway_channel_id = 1242216834237992990
 
 @bot.event
 async def on_ready():
     print()
     print(f'Бот {bot.user.name} успешно запущен.')
     print()
+
+
+@bot.event
+async def on_member_join(member):
+    print(f'новый участник! {member.display_name}')
+    channel = bot.get_channel(gateway_channel_id)
+    if member.bot:
+        return
+    elif channel is not None:
+        await channel.send(f'<@{member.id}>')
+        embed_info = nextcord.Embed(
+            description=f"⠀\n👋🏻⠀⠀**Приветствуем вас на нашем Discord сервере!**",
+            color=0x2b2d31
+        )
+        embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed_info)
+        embed_info = nextcord.Embed(
+            description=f"⠀\n**Советуем ознакомиться с следующими каналами:**\n⠀\n> - <#1242213724262105190>\n> - <#1242221576611696811>\n> - <#1242229530861768856>\n⠀\n**Вас пригласил:**\n⠀\n> ПРИГЛАСИЛ: пока нету",
+            color=0x2b2d31
+        )
+        embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed_info)
+    else:
+        print(f"Не удалось найти канал для отправки сообщения.")
+
+
+@bot.event
+async def on_member_remove(member):
+    print(f'Участник покинул нас! {member.display_name}')
+    channel = bot.get_channel(gateway_channel_id)
+    if member.bot:
+        return
+    elif channel is not None:
+        await channel.send(f'<@{member.id}>')
+        embed_info = nextcord.Embed(
+            description=f"⠀\n👋🏻⠀⠀**До скорых встреч!**",
+            color=0x2b2d31
+        )
+        embed_info.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed_info)
+        embed = nextcord.Embed(
+            description=f"⠀\n**Надеемся, что мы встретимся снова!**\n⠀\n**Пользователя пригласил:**\n⠀\n> ПРИГЛАСИЛ: пока нет",
+            color=0x2b2d31
+        )
+        embed.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        await channel.send(embed=embed)
+    else:
+        print(f"Не удалось найти канал для отправки сообщения.")
 
 
 @bot.slash_command()
