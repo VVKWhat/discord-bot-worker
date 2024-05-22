@@ -142,8 +142,7 @@ async def on_member_remove(member):
         return
     # Уведомление о выходе участника в прихожей
     elif channel is not None:
-        # ID вышедшего участника
-        await channel.send(f'{member.id}')
+        
         # EMBED 1
         embed_1 = nextcord.Embed(
             description=f"⠀\n👋🏻⠀⠀**До скорых встреч!**",
