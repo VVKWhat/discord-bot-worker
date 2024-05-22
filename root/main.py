@@ -7,8 +7,6 @@ import os
 import sqlite3
 
 # Подключение к базе данных
-def convert_datetime(ts):
-       return datetime.datetime.strptime(ts.decode("utf-8"), '%Y-%m-%d %H:%M:%S')
 def adapt_datetime(ts):
     return ts.strftime('%Y-%m-%d %H:%M:%S')
 sqlite3.register_adapter(datetime.datetime, adapt_datetime)
@@ -62,7 +60,7 @@ sql.commit()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 token_file = os.path.join(current_dir, "token")
-import locale
+# import locale
 # locale.setlocale(locale.LC_ALL, ('C', 'UTF-8')) # Вместо C установить ru_RU, при этом убедиться что есть языковой пакет ru_RU.UTF-8 через команду locale -a
 # print(locale.getlocale())   
 with open(token_file, "r") as f:
@@ -80,9 +78,7 @@ gateway_channel_id = 1242216834237992990
 # Старт бота
 @bot.event
 async def on_ready():
-    print()
-    print(f'Бот {bot.user.name} успешно запущен.')
-    print()
+    print(f'\nБот {bot.user.name} успешно запущен.\n')
 
 
 # Новый участник
@@ -118,14 +114,17 @@ async def on_member_join(member):
             description=""
         )
         # КАРТИНКА
-        embed_3.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
+        embed_3.set_image(url="https://i.ibb.co/jWQhTGH/gateway.png")
         await channel.send(embed=embed_3)
         print(bot.user.id,'joined')
         ## USER IS BANNED ##
-        answer = cursor.execute('SELECT `appelation` FROM `bot_bans` WHERE `bot_bans`.`user_id` = ?', member.id).fetchall()
-        has_ban = any(row['appilation'] for row in answer)
+        answer = cursor.execute(f'SELECT `appelation` FROM `bot_bans` WHERE `bot_bans`.`user_id` = {member.id}').fetchall()
+        print(answer)
         if len(answer) >= 1:
-            member.add_roles(1242234027742859294 if has_ban else 1242232941422051358)
+            has_ban = bool(answer[0][0])
+            role_id = 1242234027742859294 if has_ban else 1242232941422051358
+            role = member.guild.get_role(role_id)
+            await member.add_roles(role)
         sql.commit()
         ## END USER IS BANNED ##
     else:
@@ -142,7 +141,6 @@ async def on_member_remove(member):
         return
     # Уведомление о выходе участника в прихожей
     elif channel is not None:
-        
         # EMBED 1
         embed_1 = nextcord.Embed(
             description=f"⠀\n👋🏻⠀⠀**До скорых встреч!**",
@@ -164,7 +162,7 @@ async def on_member_remove(member):
             description=""
         )
         # КАРТИНКА
-        embed_3.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
+        embed_3.set_image(url="https://i.ibb.co/jWQhTGH/gateway.png")
         await channel.send(embed=embed_3)
     else:
         print(f"Не удалось найти канал для отправки сообщения.")
@@ -241,7 +239,7 @@ async def ban(
             return
         
         # Если участник уже в бане
-        if member.get_role(1242234027742859294) is None and member.get_role(1242232941422051358) is None:
+        if member.get_role(1242234027742859294) is not None and member.get_role(1242232941422051358) is not None:
             await ctx.response.send_message("Данный пользователь уже в бане.")
             return 
         
@@ -267,7 +265,7 @@ async def ban(
         channel = bot.get_channel(1242246527712235582)
         ## ADD NEW DATA IN DATABASE ##
 
-        unban_time_sql = convert_datetime(unban_time)
+        unban_time_sql = adapt_datetime(unban_time)
         sql.execute('INSERT INTO bot_bans (user_id, admin_id, reason, expired, appelation) VALUES (?, ?, ?, ?, ?)', (member.id, ctx.user.id, reason, unban_time_sql, ('appeal' in appeal)))
         sql.commit()
         ## END ADD NEW DATA IN DATABASE ##
@@ -278,28 +276,14 @@ async def ban(
         await channel.send(f'<@{member.id}>')
         # EMBED 1
         embed_1 = nextcord.Embed(
-            description="⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n⠀\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>",
+            description=f"⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n⠀\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>\n⠀\n- Срок вашего наказания:\n> {duration}ч.\n⠀\n- Причина выдачи наказания:\n> {reason}\n⠀\n- Наказание выдал(-а):\n> <@{ctx.user.id}>\n⠀\n- Дата окончания наказания:\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC){appeal_text}",
             color=0xA7A7D7
         )
-        embed_1.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        embed_1.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
+        #embed_1.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         await channel.send(embed=embed_1)
         await member.send(embed=embed_1)
-        # EMBED 2
-        embed_2 = nextcord.Embed(
-            description=f"⠀\n- Срок вашего наказания:\n> {duration}ч.\n⠀\n- Причина выдачи наказания:\n> {reason}\n⠀\n- Наказание выдал(-а):\n> <@{ctx.user.id}>\n⠀\n- Дата окончания наказания:\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC){appeal_text}",
-            color=0xA7A7D7
-        )
-        embed_2.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
-        await channel.send(embed=embed_2)
-        await member.send(embed=embed_2)
-        # EMBED 3
-        embed_3 = nextcord.Embed(
-            description=""
-        )
-        # КАРТИНКА
-        embed_3.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
-        await channel.send(embed=embed_3)
-        await member.send(embed=embed_3)
+
     except Exception as e:
         await ctx.response.send_message(f"Произошла ошибка: {str(e)}")
 
