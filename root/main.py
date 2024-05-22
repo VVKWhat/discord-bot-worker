@@ -6,8 +6,6 @@ import json
 import os
 import sqlite3
 
-import sqlite3
-
 # Подключение к базе данных
 def convert_datetime(ts):
        return datetime.datetime.strptime(ts.decode("utf-8"), '%Y-%m-%d %H:%M:%S')
