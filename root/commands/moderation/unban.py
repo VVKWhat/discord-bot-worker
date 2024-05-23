@@ -1,5 +1,5 @@
-import root.events.sqlite as sqlite
-from root.main import nextcord, bot as root
+import events.sqlite as sqlite
+from main import nextcord, bot as root
 # Снять бан участника
 @root.slash_command(name="unban", description="Убрать существующий бан пользователю")
 async def unban(
@@ -32,7 +32,7 @@ async def unban(
             return
         if ban_appeal in member.roles or ban_no_appeal in member.roles:
             
-            
+
 
             if ban_appeal in member.roles:
                 await member.remove_roles(ban_appeal)
@@ -55,6 +55,7 @@ async def unban(
             description=f"⠀\n-Разбанен пользователь:\n> {member.mention}\n⠀\n- Причина:\n> {reason}\n⠀\n- Наказание снял(-а):\n> <@{ctx.user.id}>\n",
             color=0xA7A7D7
         )
+        embed.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
         await channel.send(embed=
                            embed)
         

@@ -1,4 +1,4 @@
-from root.main import nextcord, bot as root, gateway_channel_id
+from main import nextcord, bot as root, gateway_channel_id
 # Вышел участник
 @root.event
 async def on_member_remove(member):

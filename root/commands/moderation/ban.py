@@ -1,5 +1,5 @@
-import root.events.sqlite as sqlite
-from root.main import  nextcord, SlashOption, datetime, bot as root
+import events.sqlite as sqlite
+from main import  nextcord, SlashOption, datetime, bot as root
 # Бан участника
 @root.slash_command(name="ban", description="Выдать бан участнику")
 async def ban(
@@ -70,13 +70,24 @@ async def ban(
         await channel.send(f'<@{member.id}>')
         # EMBED 1
         embed_1 = nextcord.Embed(
-            description=f"⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n⠀\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>\n⠀\n- Срок вашего наказания:\n> {duration}ч.\n⠀\n- Причина выдачи наказания:\n> {reason}\n⠀\n- Наказание выдал(-а):\n> <@{ctx.user.id}>\n⠀\n- Дата окончания наказания:\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC){appeal_text}",
+            description="⠀\n‼️⠀⠀**Вы были забанены за нарушение правил сервера!**\n\n❓⠀⠀Канал с частыми вопросами: <#1242236181505376366>\n",
             color=0xA7A7D7
         )
-        embed_1.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
+        embed_2 =nextcord.Embed(
+            description=f"⠀⠀\n- Срок вашего наказания:\n> {duration}ч.\n⠀\n- Причина выдачи наказания:\n> {reason}\n⠀\n- Наказание выдал(-а):\n> <@{ctx.user.id}>\n⠀\n- Дата окончания наказания:\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC){appeal_text}",
+            color=0xA7A7D7
+        )
+        embed_3 = nextcord.Embed(
+            description="",
+            color=0xA7A7D7
+        )
+        embed_3.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
         #embed_1.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         await channel.send(embed=embed_1)
         await member.send(embed=embed_1)
-
+        await channel.send(embed=embed_2)
+        await member.send(embed=embed_2)
+        await channel.send(embed=embed_3)
+        await member.send(embed=embed_3)
     except Exception as e:
         await ctx.response.send_message(f"Произошла ошибка: {str(e)}")

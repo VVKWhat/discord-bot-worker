@@ -1,4 +1,4 @@
-from root.main import nextcord, commands, json, bot as root
+from main import nextcord, commands, json, bot as root
 
 # Проверка прав доступа пользователя: должен иметь одну из двух указанных ролей
 @root.slash_command(description="Отправляет JSON в выбранный канал.")

@@ -6,6 +6,20 @@ import json
 import os
 import events.sqlite as sqlite
  
+
+import importlib
+
+def import_all_modules_from_directory(directory):
+    # Получаем абсолютный путь к директории
+    directory_path = os.path.abspath(directory)
+    
+    for filename in os.listdir(directory_path):
+        if filename.endswith('.py') and filename != '__init__.py':
+            module_name = filename[:-3]  # Убираем ".py" из имени файла
+            module_path = directory.replace(os.path.sep, '.') + '.' + module_name
+            importlib.import_module(module_path)
+
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 token_file = os.path.join(current_dir, "token")
 # import locale
@@ -22,11 +36,18 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 
 notification_channel_id = 1242246527712235582
 gateway_channel_id = 1242216834237992990
+# Импортируем все модули из команд
+import_all_modules_from_directory('commands/moderation')
+import_all_modules_from_directory('commands/utilities')
+import_all_modules_from_directory('events')
 
+# Ваш основной код
+if __name__ == "__main__":
+    print("Все модули импортированы")
 # Старт бота
 @bot.event
 async def on_ready():
-    sqlite.create_database()
+    await sqlite.create_database()
     print(f'\nБот {bot.user.name} успешно запущен.\n')
 # Пинг бота
 @bot.slash_command()

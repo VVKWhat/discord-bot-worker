@@ -1,5 +1,5 @@
-from root.main import nextcord, bot as root, gateway_channel_id
-import root.events.sqlite as sqlite
+from main import nextcord, bot as root, gateway_channel_id
+import events.sqlite as sqlite
 # Новый участник
 @root.event
 async def on_member_join(member):
