@@ -28,6 +28,7 @@ async def clear(ctx: nextcord.Interaction, amount: int):
 
     embed_3 = nextcord.Embed(
         description="",
+        color=0xA7A7D7
     )
     embed_3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
     await ctx.channel.send(embed=embed_3)
