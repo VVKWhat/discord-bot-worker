@@ -42,8 +42,7 @@
 - Зайди в папку /root 
 - Запустить main.py 
 > [!NOTE]
-> Запуск на **Linux**: `python3 main.py`
-
+> Запуск на **Linux**: `python3 main.py`<br>
 > Запуск на **Windows**: `python main.py`
 
 ## Нужное
