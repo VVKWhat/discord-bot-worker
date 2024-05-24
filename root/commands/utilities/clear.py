@@ -20,15 +20,8 @@ async def clear(ctx: nextcord.Interaction, amount: int):
     await ctx.response.send_message(embed=embed_1)
 
     embed_2 = nextcord.Embed(
-        description=f"⠀\n**Модератор**\n⠀\n**{ctx.user.mention}**",
-        color=0xA7A7D7
-    )
-    embed_2.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
-    await ctx.channel.send(embed=embed_2)
-
-    embed_3 = nextcord.Embed(
         description="",
         color=0xA7A7D7
     )
-    embed_3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
-    await ctx.channel.send(embed=embed_3)
+    embed_2.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
+    await ctx.channel.send(embed=embed_2)
