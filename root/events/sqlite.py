@@ -4,7 +4,7 @@ import datetime
 def adapt_datetime(ts):
     return ts.strftime('%Y-%m-%d %H:%M:%S')
 sqlite3.register_adapter(datetime.datetime, adapt_datetime)
-file = open('./database.db','+a')
+file = open('./assets/db/database.db','+a')
 file.close()
 sql = sqlite3.connect("./database.db", detect_types=sqlite3.PARSE_DECLTYPES)
 cursor = sql.cursor()
