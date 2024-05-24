@@ -4,9 +4,7 @@ import datetime
 def adapt_datetime(ts):
     return ts.strftime('%Y-%m-%d %H:%M:%S')
 sqlite3.register_adapter(datetime.datetime, adapt_datetime)
-file = open('./assets/db/database.db','+a')
-file.close()
-sql = sqlite3.connect("./database.db", detect_types=sqlite3.PARSE_DECLTYPES)
+sql = sqlite3.connect("./assets/db/database.db", detect_types=sqlite3.PARSE_DECLTYPES)
 cursor = sql.cursor()
 async def create_database():
     global sql,cursor
@@ -51,6 +49,29 @@ async def create_database():
         date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         is_bot BOOLEAN NOT NULL,
         UNIQUE(user_id, id)
+    );
+    """)
+    cursor.execute("""
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_user_id ON bot_users(user_id);
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS bot_mutes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        admin_id INTEGER NOT NULL,
+        reason TEXT NOT NULL,
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expired TIMESTAMP,
+        appelation BOOLEAN,
+        UNIQUE(user_id, id)
+    );
+    """)
+    cursor.execute("""
+    DELETE FROM bot_users
+    WHERE rowid NOT IN (
+        SELECT MIN(rowid)
+        FROM bot_users
+        GROUP BY user_id
     );
     """)
     sql.commit()

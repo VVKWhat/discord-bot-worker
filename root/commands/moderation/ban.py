@@ -5,8 +5,16 @@ from main import  nextcord, SlashOption, datetime, bot as root
 async def ban(
     ctx: nextcord.Interaction, 
     member: nextcord.Member, 
-    duration: int, 
-    reason: str, 
+    duration: int = SlashOption(
+        name="duration",
+        description= "Время в часах",
+        required=True
+    ), 
+    reason: str = SlashOption(
+        name="reason",
+        description= "Причина выдачи",
+        required=True
+    ), 
     appeal: str = SlashOption(
         name="appeal",
         choices={
@@ -82,7 +90,8 @@ async def ban(
             color=0xA7A7D7
         )
         embed_3.set_image(url="https://i.ibb.co/b21F1Mf/ban.png")
-        #embed_1.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        embed_2.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
+        embed_1.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         await channel.send(embed=embed_1)
         await member.send(embed=embed_1)
         await channel.send(embed=embed_2)

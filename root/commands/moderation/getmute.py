@@ -1,7 +1,7 @@
 import events.sqlite as sqlite
 from main import nextcord, datetime, SlashOption, bot as root
-@root.slash_command(name="getwarns", description="Получить варны у пользователя")
-async def getwarns(
+@root.slash_command(name="getmute", description="Получить варны у пользователя")
+async def getmute(
     ctx: nextcord.Interaction, 
     member: nextcord.Member, ):
     guild = ctx.guild
@@ -13,15 +13,12 @@ async def getwarns(
     if ctx.user.top_role.id not in [1242265397735067698, 1242267372052545576, 1242266974713544825]:
         await ctx.response.send_message("У вас нет прав для использования этой команды.")
         return
-    all_warns = sqlite.cursor.execute(f'SELECT * FROM `bot_warns` WHERE `bot_warns`.`user_id` = {member.id}').fetchall()
+    all_warns = sqlite.cursor.execute(f'SELECT * FROM `bot_mutes` WHERE `bot_mutes`.`user_id` = {member.id}').fetchall()
     print(all_warns)
     warns = ''
     for warn in all_warns:
-        date = warn[4]
-        if date == -2:
-            date = 'навсегда'
-        timestamp: datetime.datetime = warn[3].strftime('%H:%M %d.%m.%Y')
-        warns = warns+f'`id: {warn[0]}, причина: {warn[2]}, дата выдачи: {timestamp}, время: {date} дней`\n'
+        date = warn[5]
+        timestamp: datetime.datetime = warn[4].strftime('%H:%M %d.%m.%Y')
+        warns = warns+f'`id: {warn[0]}, причина: {warn[3]}, дата выдачи: {timestamp}, время: {date} часов`\n'
     await ctx.response.send_message(f"Все предупреждения пользователя {member.mention}\n{warns}") 
-    #await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {ctx.user.mention}\nСрок выдачи варна: ----- дней.')
     sqlite.sql.commit()
