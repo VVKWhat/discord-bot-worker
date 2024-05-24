@@ -3,7 +3,6 @@ from main import nextcord, commands, json, bot as root
 @root.slash_command(name="clear", description="Очищает указанное количество сообщений")
 @commands.has_any_role(1242265397735067698, 1242267372052545576, 1242266974713544825, 1242266949250056304)
 async def clear(ctx: nextcord.Interaction, amount: int):
-    """Очищает указанное количество сообщений"""
     if amount > 100:
         await ctx.response.send_message("Максимальное количество сообщений, которое можно очистить - 100!")
         return
