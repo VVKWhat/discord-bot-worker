@@ -43,6 +43,7 @@
 - Запустить main.py 
 > [!NOTE]
 > Запуск на **Linux**: `python3 main.py`
+
 > Запуск на **Windows**: `python main.py`
 
 ## Нужное
