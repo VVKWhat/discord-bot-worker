@@ -1,0 +1,32 @@
+{
+  "content": "<@{member.id}>",
+  "tts": false,
+  "embeds": [
+    {
+      "description": "⠀\n**С вас было снято наказание.**",
+      "fields": [],
+      "color": 10987479,
+      "image": {
+        "url": "https://i.ibb.co/26ySjnr/filler.png"
+      }
+    },
+    {
+      "description": "### **Причина**\n⠀\n> \"{reason}\"\n⠀\n### **Модератор**\n⠀\n> <@{ctx.user.id}>",
+      "fields": [],
+      "color": 10987479,
+      "image": {
+        "url": "https://i.ibb.co/26ySjnr/filler.png"
+      }
+    },
+    {
+      "description": "",
+      "fields": [],
+      "color": 10987479,
+      "image": {
+        "url": "https://i.ibb.co/M7DtSqd/banner.png"
+      }
+    }
+  ],
+  "components": [],
+  "actions": {}
+}

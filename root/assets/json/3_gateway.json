@@ -1,0 +1,32 @@
+{
+  "content": "<@{member.id}>",
+  "tts": false,
+  "embeds": [
+    {
+      "description": "⠀\n**Приветствуем Вас на Discord сервере хостинга Gaurin!**",
+      "fields": [],
+      "color": 10987479,
+      "image": {
+        "url": "https://i.ibb.co/26ySjnr/filler.png"
+      }
+    },
+    {
+      "description": "### **Полезные каналы**\n⠀\n- <#1242213724262105190>\n> Информация о сервере, и ссылки.\n- <#1242221576611696811>\n> Правила поведения на сервере.\n- <#1242229530861768856>\n> Доступные к покупке тарифы.\n⠀\n### **Вас пригласил**\n⠀\n> <@{ctx.user.id}>",
+      "fields": [],
+      "color": 10987479,
+      "image": {
+        "url": "https://i.ibb.co/26ySjnr/filler.png"
+      }
+    },
+    {
+      "description": "",
+      "fields": [],
+      "color": 10987479,
+      "image": {
+        "url": "https://i.ibb.co/M7DtSqd/banner.png"
+      }
+    }
+  ],
+  "components": [],
+  "actions": {}
+}
