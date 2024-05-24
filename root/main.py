@@ -9,15 +9,17 @@ import events.sqlite as sqlite
 
 import importlib
 
-def import_all_modules_from_directory(directory):
+def get_modules_from_directory(directory):
     # Получаем абсолютный путь к директории
     directory_path = os.path.abspath(directory)
-    
+    print(f'modules directory: {directory_path}')
     for filename in os.listdir(directory_path):
         if filename.endswith('.py') and filename != '__init__.py':
-            module_name = filename[:-3]  # Убираем ".py" из имени файла
-            module_path = directory.replace(os.path.sep, '.') + '.' + module_name
-            importlib.import_module(module_path)
+            module_path = os.path.join(directory_path, filename)
+            with open(module_path, "r", encoding="utf-8") as file:
+                code = file.read()
+                compiled_code = compile(code, module_path, 'exec')
+                exec(compiled_code, globals())
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,19 +38,39 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 
 notification_channel_id = 1242246527712235582
 gateway_channel_id = 1242216834237992990
+guild_id = 1242213449405304864
 # Импортируем все модули из команд
-import_all_modules_from_directory('commands/moderation')
-import_all_modules_from_directory('commands/utilities')
-import_all_modules_from_directory('events')
+get_modules_from_directory('commands/moderation')
+get_modules_from_directory('commands/utilities')
+get_modules_from_directory('events')
 
-# Ваш основной код
-if __name__ == "__main__":
-    print("Все модули импортированы")
+print("Все модули импортированы")
+
 # Старт бота
 @bot.event
 async def on_ready():
     await sqlite.create_database()
     print(f'\nБот {bot.user.name} успешно запущен.\n')
+
+    for guild in bot.guilds:
+        if guild.id != guild_id:
+            await leave_guild(guild)
+        else:
+            for member in guild.members:
+                await sqlite.add_user_to_database(member.id, member.bot)
+
+async def leave_guild(guild: nextcord.Guild):
+    for channel in guild.text_channels:
+        if channel.permissions_for(guild.me).send_messages:
+            await channel.send("[Бот доступен только на одном сервере.](https://discord.gg/ffTPqp8GjT)")
+            break
+    await guild.leave()
+
+@bot.event
+async def on_guild_join(guild: nextcord.Guild):
+    if guild.id != guild_id:
+        await leave_guild(guild)
+
 # Пинг бота
 @bot.slash_command()
 async def ping(ctx):

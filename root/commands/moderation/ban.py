@@ -33,7 +33,7 @@ async def ban(
             return
         
         # Если участник уже в бане
-        if member.get_role(1242234027742859294) is not None and member.get_role(1242232941422051358) is not None:
+        if member.get_role(1242234027742859294) is not None or member.get_role(1242232941422051358) is not None:
             await ctx.response.send_message("Данный пользователь уже в бане.")
             return 
         

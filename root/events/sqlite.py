@@ -49,7 +49,20 @@ async def create_database():
         user_id INTEGER NOT NULL,
         invite_id INTEGER NULL,
         date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_bot BOOLEAN NOT NULL,
         UNIQUE(user_id, id)
     );
     """)
+    sql.commit()
+
+async def add_user_to_database(user_id: int, is_bot: bool):
+    cursor.execute("""
+    INSERT OR IGNORE INTO bot_users (user_id, date, is_bot)
+    VALUES (?, ?, ?)
+    """, (user_id, datetime.datetime.now(), is_bot))
+    sql.commit()
+async def remove_user_from_database(user_id: int):
+    cursor.execute("""
+    DELETE FROM bot_users WHERE user_id = ?
+    """, (user_id,))
     sql.commit()

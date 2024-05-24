@@ -7,7 +7,7 @@ async def warn(
     duration: int = SlashOption(
         name="duration",
         choices={
-            "Навсегда": 0, 
+            "Навсегда": -2, 
             "30 дней": 30, 
             "Пользовательский": -1
         },
@@ -17,6 +17,11 @@ async def warn(
         name="reason",
         required=True
     )):
+    guild = ctx.guild
+        # Если команда вызывается не на сервере
+    if not guild:
+        await ctx.response.send_message("Эта команда может быть использована только на сервере.")
+        return
     if duration == -1:
         modal = nextcord.ui.Modal(title="Введите пользовательский срок")
         
@@ -35,7 +40,8 @@ async def warn(
         async def modal_callback(interaction: nextcord.Interaction):
             custom_duration_value = custom_duration.value
             try:
-                sqlite.cursor.execute('INSERT `bot_warns` INTO `bot_warns`.`users_id`, `bot_warns`.`reason`, `bot_warns`.`expired_days` VALUES (?.?,?)', member.id, reason, custom_duration_value)
+                sqlite.cursor.execute('INSERT INTO bot_warns (user_id, reason, expired_days) VALUES (?, ?, ?)',
+    (member.id, reason, custom_duration_value))
                 sqlite.sql.commit()
                 await interaction.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {custom_duration_value}, причина: {reason}") 
                 await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {interaction.user.mention}\nСрок выдачи варна: {custom_duration_value} дней.')
@@ -46,6 +52,12 @@ async def warn(
         await ctx.response.send_modal(modal)
 
     else:
-        await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {ctx.user.mention}\nСрок выдачи варна: {duration}')
-        await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {duration}, причина: {reason}")
-    
+        sqlite.cursor.execute('INSERT INTO bot_warns (user_id, reason, expired_days) VALUES (?, ?, ?)',
+    (member.id, reason, duration))
+        sqlite.sql.commit()
+        if duration != -2:
+            await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {ctx.user.mention}\nСрок выдачи варна: {duration}')
+            await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {duration}, причина: {reason}")
+            return 
+        await member.send(f'Вы получили варн по причине {reason}\nПолучили варн от администратора: {ctx.user.mention}\nСрок выдачи варна: **навсегда**')
+        await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок **навсегда**, причина: {reason}")

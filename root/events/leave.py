@@ -1,7 +1,10 @@
-from main import nextcord, bot as root, gateway_channel_id
+from main import nextcord, bot as root, gateway_channel_id, guild_id
+import events.sqlite as sqlite
 # Вышел участник
 @root.event
 async def on_member_remove(member):
+    if member.guild.id == guild_id:
+        await sqlite.remove_user_from_database(member.id)
     # Уведомление о выходе участника в консоли
     print(f'Участник покинул нас! {member.display_name}')
     channel = root.get_channel(gateway_channel_id)

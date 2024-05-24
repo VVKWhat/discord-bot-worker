@@ -32,7 +32,7 @@ async def unban(
             return
         if ban_appeal in member.roles or ban_no_appeal in member.roles:
             
-
+            sqlite.cursor.execute(f'DELETE FROM `bot_bans` WHERE `bot_bans`.`user_id` = {member.id}')
 
             if ban_appeal in member.roles:
                 await member.remove_roles(ban_appeal)
@@ -43,7 +43,7 @@ async def unban(
                 await member.remove_roles(ban_no_appeal)
                 await ctx.response.send_message(f'⠀\nПользователь {member.mention} был разбанен администратором {ctx.user.mention}\n⠀\nПричина снятия бана: **{reason}**\n⠀\nУ данного пользователя был бан без возможности аппеляции.')
                 await member.send(f'Вы были разбанены администратором {ctx.user.mention}\n**Начинайте наслаждаться моментом!**')
-
+            sqlite.sql.commit()
         else:
             await ctx.response.send_message("Данный пользователь не забанен!")
             

@@ -1,13 +1,18 @@
-from main import nextcord, bot as root, gateway_channel_id
+from main import nextcord, bot as root, gateway_channel_id, guild_id
 import events.sqlite as sqlite
 # Новый участник
 @root.event
-async def on_member_join(member):
+async def on_member_join(member: nextcord.Member):
     # Уведомление о присоединении участника в консоли
     print(f'Участник присоединился к нам! {member.display_name}')
     channel = root.get_channel(gateway_channel_id)
+    
+    if member.guild.id == guild_id:
+        await sqlite.add_user_to_database(member.id, member.bot)
+
     if member.bot:
         return
+    
     # Уведомление о присоединении участника в прихожей
     elif channel is not None:
         # Упоминание присоединившегося участника
