@@ -1,0 +1,35 @@
+{
+    "content": "<@{member.id}>",
+    "tts": false,
+    "embeds": [
+      {
+        "id": 584068271,
+        "description": "⠀\n**Вы были забанены за нарушения правил сервера.**",
+        "fields": [],
+        "color": 10987479,
+        "image": {
+          "url": "https://i.ibb.co/26ySjnr/filler.png"
+        }
+      },
+      {
+        "id": 71514909,
+        "description": "### **Причина**\n⠀\n> \"{reason}\"\n⠀\n###  **Длительность**\n⠀\n> **{duration}**ч.\n⠀\n### **Дата истечения**\n⠀\n> {unban_time.strftime('%d %B %Y, %H:%M')} (UTC){appeal_text}\n⠀\n### **Модератор**\n⠀\n> <@{ctx.user.id}>",
+        "fields": [],
+        "color": 10987479,
+        "image": {
+          "url": "https://i.ibb.co/26ySjnr/filler.png"
+        }
+      },
+      {
+        "id": 184215895,
+        "description": "",
+        "fields": [],
+        "color": 10987479,
+        "image": {
+          "url": "https://i.ibb.co/M7DtSqd/banner.png"
+        }
+      }
+    ],
+    "components": [],
+    "actions": {}
+  }
