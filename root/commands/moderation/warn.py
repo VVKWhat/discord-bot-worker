@@ -17,6 +17,7 @@ async def warn(
     ), 
     reason: str = SlashOption(
         name="reason",
+        description="Причина",
         required=True
     )
 ):
@@ -68,7 +69,7 @@ async def warn(
                 )
                 sqlite.sql.commit()
                 await interaction.response.send_message(
-                    f"Выдано предупреждение пользователю {member.mention} на срок {custom_duration_value}, причина: {reason}"
+                    f"Выдано предупреждение пользователю {member.mention} на срок {custom_duration_value} д.\nпричина: {reason}"
                 )
             except Exception as e:
                 await interaction.response.send_message(
@@ -87,9 +88,9 @@ async def warn(
         sqlite.sql.commit()
         
         if duration != -2:
-            await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {duration}, причина: {reason}")
+            await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок {duration} д.\nпричина: {reason}")
         else:    
-            await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок **навсегда**, причина: {reason}")
+            await ctx.response.send_message(f"Выдано предупреждение пользователю {member.mention} на срок **навсегда**\nпричина: {reason}")
     
     if (warn_member_len + 1) >= 4:
         embed_1 = nextcord.Embed(

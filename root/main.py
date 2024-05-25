@@ -37,6 +37,9 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 
 notification_channel_id = 1242246527712235582
 gateway_channel_id = 1242216834237992990
+
+
+
 guild_id = 1242213449405304864
 guild: nextcord.Guild = bot.get_guild(guild_id)
 # Импортируем все модули из команд
@@ -58,85 +61,137 @@ async def on_ready():
         else:
             for member in guild.members:
                 await sqlite.add_user_to_database(member.id, member.bot)
-    
+    await check_task(guild)
     scheduler.start()
 
-async def hourly_task():
+async def check_task(guild):
+    print('Начата проверка...')
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    data = await sqlite.cursor.execute("SELECT `user_id` FROM `bot_bans` WHERE datetime(`date`, '+' || `expired` || 'hours') <= ?", (now))
-    expired_bans = await data.fetchall()
+    data = sqlite.cursor.execute('SELECT `user_id` FROM `bot_bans` WHERE `expired` <= ?', (now,))
+    expired_bans = data.fetchall()
     channel = bot.get_channel(1242246527712235582)
     for ban in expired_bans:
         user_id = ban[0]
-        if guild:
-            user = await guild.fetch_member(user_id)
-            if user:
-                await sqlite.cursor.execute('DELETE FROM `bot_bans` WHERE `bot_bans`.`user_id` = ?',(user_id))
-                embed1 = nextcord.Embed(
-                    description=" \n**С вас было снято наказание.**",
-                    color=0xA7A7D7,
-                    url="https://i.ibb.co/26ySjnr/filler.png"
-                )
-                embed2 = nextcord.Embed(
-                    description=f"### **Причина**\n⠀\n> \"Срок бана истёк\"\n⠀\н### **Модератор**\n⠀\н> <@1235625733431234681>",
-                    color=0xA7A7D7,
-                    url="https://i.ibb.co/26ySjnr/filler.png"
-                )
-                embed3 = nextcord.Embed(
-                    description="",
-                    color=0xA7A7D7
-                )
-                embed1.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
-                embed2.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
-                embed3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
-                await channel.send(embed=embed1)
-                await channel.send(embed=embed2)
-                await channel.send(embed=embed3)
-                try:
-                    await user.send(embed=embed1)
-                    await user.send(embed=embed2)
-                    await user.send(embed=embed3)
-                except nextcord.Forbidden:
-                    pass
-                print(f"Разбан пользователя с ID: {user_id}")
+        if len(expired_bans) <=0:
+            break
+        user = await guild.fetch_member(user_id)
+        sqlite.cursor.execute(f'DELETE FROM `bot_bans` WHERE `bot_bans`.`user_id` = {user_id}')
+        ban_appeal = guild.get_role(1242234027742859294)
+        ban_no_appeal = guild.get_role(1242232941422051358)
+        if ban_appeal in user.roles:
+            await user.remove_roles(ban_appeal)
+        elif ban_no_appeal in user.roles:
+            await user.remove_roles(ban_no_appeal)
+        embed1 = nextcord.Embed(
+            description=" ⠀\n**С вас было снято наказание.**",
+            color=0xA7A7D7,
+            url="https://i.ibb.co/26ySjnr/filler.png"
+        )
+        embed2 = nextcord.Embed(
+            description=f"### **Причина**\n⠀\n> \"Срок бана истёк\"\n⠀\n### **Модератор**\n⠀\n> <@1235625733431234681>",
+            color=0xA7A7D7,
+            url="https://i.ibb.co/26ySjnr/filler.png"
+        )
+        embed3 = nextcord.Embed(
+            description="",
+            color=0xA7A7D7
+        )
+        embed1.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
+        embed2.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
+        embed3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
+        await channel.send(f'<@{user_id}>')
+        await channel.send(embed=embed1)
+        await channel.send(embed=embed2)
+        await channel.send(embed=embed3)
+        try:
+            await user.send(embed=embed1)
+            await user.send(embed=embed2)
+            await user.send(embed=embed3)
+        except nextcord.Forbidden:
+            pass
+        print(f"Разбан пользователя с ID: {user_id}")
     sqlite.sql.commit()
-    data = sqlite.cursor.execute("SELECT `user_id` FROM `bot_mutes` WHERE datetime(`date`, '+' || `expired` || 'hours') <= ?", (now))
-    expired_mutes = await data.fetchall()
+    data = sqlite.cursor.execute('SELECT `user_id` FROM `bot_bans` WHERE `expired` <= ?', (now,))
+    expired_mutes = data.fetchall()
     for mute in expired_mutes:
         user_id = mute[0]
-        if guild:
-            user = await guild.fetch_member(user_id)
-            if user:
-                await sqlite.cursor.execute('DELETE FROM `bot_mutes` WHERE `bot_mutes`.`user_id` = ?',(user_id))
-                embed1 = nextcord.Embed(
-                    description="⠀\n**С вас был снят мьют.**",
-                    color=0xA7A7D7,
-                    url="https://i.ibb.co/26ySjnr/filler.png"
-                )
-                embed2 = nextcord.Embed(
-                    description=f"### **Причина**\n⠀\n> \"Срок мута истёк\"\n⠀\н### **Модератор**\n⠀\н> <@1235625733431234681>",
-                    color=0xA7A7D7,
-                    url="https://i.ibb.co/26ySjnr/filler.png"
-                )
-                embed3 = nextcord.Embed(
-                    description="",
-                    color=0xA7A7D7
-                )
-                embed1.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
-                embed2.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
-                embed3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
-                await channel.send(embed=embed1)
-                await channel.send(embed=embed2)
-                await channel.send(embed=embed3)
-                try:
-                    await user.send(embed=embed1)
-                    await user.send(embed=embed2)
-                    await user.send(embed=embed3)
-                except nextcord.Forbidden:
-                    pass
-                print(f"Размьючен пользователя с ID: {user_id}")
+        user: nextcord.Member = await guild.fetch_member(user_id)
+        if len(expired_mutes) <=0:
+            break
+        user.remove_roles(guild.get_role(1242266843499200684))
+        sqlite.cursor.execute(f'DELETE FROM `bot_mutes` WHERE `bot_mutes`.`user_id` = {user_id}')
+        embed1 = nextcord.Embed(
+            description="⠀\n**С вас был снят мьют.**",
+            color=0xA7A7D7,
+            url="https://i.ibb.co/26ySjnr/filler.png"
+        )
+        embed2 = nextcord.Embed(
+            description=f"### **Причина**\n⠀\n> \"Срок мута истёк\"\n⠀\n### **Модератор**\n⠀\n> <@1235625733431234681>",
+            color=0xA7A7D7,
+            url="https://i.ibb.co/26ySjnr/filler.png"
+        )
+        embed3 = nextcord.Embed(
+            description="",
+            color=0xA7A7D7
+        )
+        embed1.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
+        embed2.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
+        embed3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
+        await channel.send(f'<@{user_id}>')
+        await channel.send(embed=embed1)
+        await channel.send(embed=embed2)
+        await channel.send(embed=embed3)
+        try:
+            await user.send(embed=embed1)
+            await user.send(embed=embed2)
+            await user.send(embed=embed3)
+        except nextcord.Forbidden:
+            pass
+        print(f"Размьючен пользователя с ID: {user_id}")
     sqlite.sql.commit()
-scheduler.add_job(hourly_task, 'interval', hours=1)
+    data = sqlite.cursor.execute("SELECT `user_id` FROM `bot_warns` WHERE datetime(`date`, '+' || `expired_days` || ' hours') <= ?", (now,))
+    expired_warns = data.fetchall()
+    
+    for warn in expired_warns:
+        user_id = warn[0]
+        user = await guild.fetch_member(user_id)
+        if len(expired_warns) <=0:
+            break
+        sqlite.cursor.execute(f'DELETE FROM `bot_warns` WHERE `bot_warns`.`user_id` = {user_id}')
+        embed1 = nextcord.Embed(
+            description="⠀\n**С вас было снято предупреждение.**",
+            color=0xA7A7D7,
+            url="https://i.ibb.co/26ySjnr/filler.png"
+        )
+        embed2 = nextcord.Embed(
+            description=f"### **Причина**\n⠀\n> \"Срок предупреждения истёк\"\n⠀\n### **Модератор**\n⠀\n> <@1235625733431234681>",
+            color=0xA7A7D7,
+            url="https://i.ibb.co/26ySjnr/filler.png"
+        )
+        embed3 = nextcord.Embed(
+            description="",
+            color=0xA7A7D7
+        )
+        embed1.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
+        embed2.set_image(url="https://i.ibb.co/26ySjnr/filler.png")
+        embed3.set_image(url="https://i.ibb.co/M7DtSqd/banner.png")
+        await channel.send(f'<@{user_id}>')
+        await channel.send(embed=embed1)
+        await channel.send(embed=embed2)
+        await channel.send(embed=embed3)
+        try:
+            await user.send(embed=embed1)
+            await user.send(embed=embed2)
+            await user.send(embed=embed3)
+        except nextcord.Forbidden:
+            pass
+        print(f"Снят варн пользователя с ID: {user_id}")
+    sqlite.sql.commit()
+    print(expired_bans)
+    print(expired_mutes)
+    print(expired_warns)
+    print('Проверка завершена...')
+scheduler.add_job(check_task, 'interval', minutes=30, args=[guild])
 
 
 async def leave_guild(guild: nextcord.Guild):
