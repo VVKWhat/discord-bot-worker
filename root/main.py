@@ -45,6 +45,7 @@ guild: nextcord.Guild = bot.get_guild(guild_id)
 # Импортируем все модули из команд
 get_modules_from_directory('commands/moderation')
 get_modules_from_directory('commands/utilities')
+get_modules_from_directory('commands/default')
 get_modules_from_directory('events')
 scheduler = AsyncIOScheduler()
 print("Все модули импортированы")

@@ -62,7 +62,6 @@ async def create_database():
         reason TEXT NOT NULL,
         date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         expired TIMESTAMP,
-        appelation BOOLEAN,
         UNIQUE(user_id, id)
     );
     """)

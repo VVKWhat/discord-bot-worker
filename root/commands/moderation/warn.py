@@ -118,13 +118,15 @@ async def warn(
         embed_1.set_image(url="https://i.ibb.co/ZWBrwLk/filler.png")
         
         await member.add_roles(guild.get_role(1242232941422051358))
+        await channel.send(member.mention)
         await channel.send(embed=embed_1)
         await member.send(embed=embed_1)
         await channel.send(embed=embed_2)
         await member.send(embed=embed_2)
         await channel.send(embed=embed_3)
         await member.send(embed=embed_3)
-
+        
+    await channel.send(member.mention)
     await channel.send(embed=embed1)
     await member.send(embed=embed1)
     await channel.send(embed=embed2)
