@@ -217,4 +217,9 @@ async def ping(ctx):
         color=0xA7A7D7
     )
     await ctx.send(embed=embed)
-bot.run(TOKEN)
+try:
+    bot.run(TOKEN)
+except RuntimeError:
+    print('Бот GAURIN Успешно завершил свою работу')
+except Exception as e:
+    print('ВОзникла ошибка:',e)
